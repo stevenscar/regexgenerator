@@ -98,29 +98,29 @@ Test Case 4 - Input List: ["A123XY","BA1234ZT","AB12345B"]
 
 1. Creazione sequenza base + Match prima stringa  
    Input: A123XY   
-   [#RegexTokenA{tokenType=ALPHABETIC_UPPERCASE, min=1, max=1},  
+   [#RegexTokenA{tokenType=LETTER, min=1, max=1},  
    #RegexTokenB{tokenType=DIGIT, min=3, max=3},  
-   #RegexTokenC{tokenType=ALPHABETIC_UPPERCASE, min=2, max=2}]
+   #RegexTokenC{tokenType=LETTER, min=2, max=2}]
 
 
 2. Update per match seconda stringa:  
    Input: BA1234ZT   
-   [#RegexTokenA{tokenType=ALPHABETIC_UPPERCASE, min=1, max=2},  
+   [#RegexTokenA{tokenType=LETTER, min=1, max=2},  
    #RegexTokenB{tokenType=DIGIT, min=3, max=4},  
-   #RegexTokenC{tokenType=ALPHABETIC_UPPERCASE, min=2, max=2}]
+   #RegexTokenC{tokenType=LETTER, min=2, max=2}]
 
 
 3. Update per match terza stringa :  
    Input: AB12345B  
-   [#RegexTokenA{tokenType=ALPHABETIC_UPPERCASE, min=1, max=2},  
+   [#RegexTokenA{tokenType=LETTER, min=1, max=2},  
    #RegexTokenB{tokenType=DIGIT, min=3, max=5},  
-   #RegexTokenC{tokenType=ALPHABETIC_UPPERCASE, min=1, max=2}]
+   #RegexTokenC{tokenType=LETTER, min=1, max=2}]
 
 
 4. Output parziale:  
-   [#RegexTokenA{tokenType=ALPHABETIC_UPPERCAS,E min=1, max=2} = [A-Z]{1,2}  
+   [#RegexTokenA{tokenType=LETTER, min=1, max=2} = [A-Z]{1,2}  
    #RegexTokenB{tokenType=DIGIT, min=3, max=5} = \d{3,5}  
-   #RegexTokenC{tokenType=ALPHABETIC_UPPERCASE, min=1, max=2}] = [A-Z]{1,2}  
+   #RegexTokenC{tokenType=LETTER, min=1, max=2}] = [A-Z]{1,2}  
 
 
 5. Output finale:  
