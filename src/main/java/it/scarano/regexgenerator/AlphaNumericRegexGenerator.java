@@ -4,8 +4,6 @@ import static it.scarano.regexgenerator.SimpleTokenType.LETTER;
 import static it.scarano.regexgenerator.SimpleTokenType.DIGIT;
 import static java.lang.Character.DECIMAL_DIGIT_NUMBER;
 import static java.lang.Character.UPPERCASE_LETTER;
-import static java.lang.Character.isDigit;
-import static java.lang.Character.isUpperCase;
 import static lombok.AccessLevel.NONE;
 
 import java.util.ArrayList;
@@ -31,42 +29,50 @@ public class AlphaNumericRegexGenerator implements RegexGenerator {
       int tokenIndex = 0;
       int regexTokenCharCounter = 0;
       char[] currentInputCharArr = input.toCharArray();
-
+      TokenType previousTokenType = null;
       for(int charIndex = 0; charIndex < currentInputCharArr.length; charIndex++) {
 
         char currentChar = currentInputCharArr[charIndex];
+        TokenType tokenType = getTokenType(currentChar);
 
-        TokenType tokenType;
-        boolean isLastCharInSubstring;
-        switch(Character.getType(currentChar)) {
-          case UPPERCASE_LETTER:
-            tokenType = LETTER;
-            isLastCharInSubstring = charIndex < currentInputCharArr.length - 1 && !isUpperCase(currentInputCharArr[charIndex + 1]);
-            break;
-          case DECIMAL_DIGIT_NUMBER:
-            tokenType = DIGIT;
-            isLastCharInSubstring = charIndex < currentInputCharArr.length - 1 && !isDigit(currentInputCharArr[charIndex + 1]);
-            break;
-          default:
-            throw new IllegalArgumentException(String.format("Character %s not allowed", currentChar));
-        }
-
-        regexTokenCharCounter++;
         boolean isLastChar = charIndex == currentInputCharArr.length - 1;
-        boolean doCreateOrUpdate = isLastCharInSubstring || isLastChar;
+        boolean isSameTypeAsPrevious = tokenType.equals(previousTokenType);
+        boolean isLastCharAndDifferentFromPreviousType = !isSameTypeAsPrevious && isLastChar;
+        boolean isLastCharAndSameAsPreviousType        = isSameTypeAsPrevious && isLastChar;
+
+        boolean doCreateOrUpdate = previousTokenType != null && !isSameTypeAsPrevious || isLastChar;
 
         if(doCreateOrUpdate) {
           if(inputIndex == 0) {
-            createRegexToken(tokenType, regexTokenList, regexTokenCharCounter);
+            createRegexToken(previousTokenType, regexTokenList, isLastCharAndSameAsPreviousType ? regexTokenCharCounter + 1 : regexTokenCharCounter);
+            if(isLastCharAndDifferentFromPreviousType) {
+              createRegexToken(tokenType, regexTokenList, 1);
+            }
           } else {
-            updateRegexToken(regexTokenList, tokenIndex, regexTokenCharCounter);
+            updateRegexToken(regexTokenList, tokenIndex, isLastCharAndSameAsPreviousType ? regexTokenCharCounter + 1 : regexTokenCharCounter);
+            if(isLastCharAndDifferentFromPreviousType) {
+              updateRegexToken(regexTokenList, tokenIndex + 1, 1);
+            }
           }
           regexTokenCharCounter = 0;
           tokenIndex++;
         }
+        regexTokenCharCounter++;
+        previousTokenType = tokenType;
       }
     }
     return computeRegexTokenList(regexTokenList);
+  }
+
+  private TokenType getTokenType(char currentChar) {
+    switch(Character.getType(currentChar)) {
+      case UPPERCASE_LETTER:
+        return LETTER;
+      case DECIMAL_DIGIT_NUMBER:
+        return DIGIT;
+      default:
+        throw new IllegalArgumentException(String.format("Character %s not allowed", currentChar));
+    }
   }
 
   public String generateRegex(String inputToMatch) {
@@ -106,8 +112,8 @@ public class AlphaNumericRegexGenerator implements RegexGenerator {
 
   private String computeRegexTokenList(List<RegexToken> tokenList) {
     return tokenList.stream()
-                    .map(RegexToken::compute)
-                    .reduce("", (accumulator, current) -> accumulator + current);
+            .map(RegexToken::compute)
+            .reduce("", (accumulator, current) -> accumulator + current);
   }
 
 }
