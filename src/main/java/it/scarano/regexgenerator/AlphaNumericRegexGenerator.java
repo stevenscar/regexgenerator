@@ -31,42 +31,49 @@ public class AlphaNumericRegexGenerator implements RegexGenerator {
       int tokenIndex = 0;
       int regexTokenCharCounter = 0;
       char[] currentInputCharArr = input.toCharArray();
-
+      TokenType previousTokenType = null;
       for(int charIndex = 0; charIndex < currentInputCharArr.length; charIndex++) {
 
         char currentChar = currentInputCharArr[charIndex];
+        TokenType tokenType = getTokenType(currentChar);
 
-        TokenType tokenType;
-        boolean isLastCharInSubstring;
-        switch(Character.getType(currentChar)) {
-          case UPPERCASE_LETTER:
-            tokenType = LETTER;
-            isLastCharInSubstring = charIndex < currentInputCharArr.length - 1 && !isUpperCase(currentInputCharArr[charIndex + 1]);
-            break;
-          case DECIMAL_DIGIT_NUMBER:
-            tokenType = DIGIT;
-            isLastCharInSubstring = charIndex < currentInputCharArr.length - 1 && !isDigit(currentInputCharArr[charIndex + 1]);
-            break;
-          default:
-            throw new IllegalArgumentException(String.format("Character %s not allowed", currentChar));
-        }
-
-        regexTokenCharCounter++;
         boolean isLastChar = charIndex == currentInputCharArr.length - 1;
-        boolean doCreateOrUpdate = isLastCharInSubstring || isLastChar;
+        boolean doCreateOrUpdate = previousTokenType != null && !previousTokenType.equals(tokenType);
 
         if(doCreateOrUpdate) {
-          if(inputIndex == 0) {
-            createRegexToken(tokenType, regexTokenList, regexTokenCharCounter);
+          if(inputIndex == 0 ) {
+            createRegexToken(previousTokenType, regexTokenList, regexTokenCharCounter);
           } else {
             updateRegexToken(regexTokenList, tokenIndex, regexTokenCharCounter);
           }
           regexTokenCharCounter = 0;
           tokenIndex++;
         }
+        regexTokenCharCounter++;
+
+        if(isLastChar) {
+          if(inputIndex == 0) {
+            createRegexToken(tokenType, regexTokenList, regexTokenCharCounter);
+          } else {
+            updateRegexToken(regexTokenList, tokenIndex, regexTokenCharCounter);
+          }
+        }
+
+        previousTokenType = tokenType;
       }
     }
     return computeRegexTokenList(regexTokenList);
+  }
+
+  private TokenType getTokenType(char currentChar) {
+    switch(Character.getType(currentChar)) {
+      case UPPERCASE_LETTER:
+        return LETTER;
+      case DECIMAL_DIGIT_NUMBER:
+        return DIGIT;
+      default:
+        throw new IllegalArgumentException(String.format("Character %s not allowed", currentChar));
+    }
   }
 
   public String generateRegex(String inputToMatch) {
@@ -106,8 +113,8 @@ public class AlphaNumericRegexGenerator implements RegexGenerator {
 
   private String computeRegexTokenList(List<RegexToken> tokenList) {
     return tokenList.stream()
-                    .map(RegexToken::compute)
-                    .reduce("", (accumulator, current) -> accumulator + current);
+            .map(RegexToken::compute)
+            .reduce("", (accumulator, current) -> accumulator + current);
   }
 
 }
